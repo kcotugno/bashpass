@@ -16,9 +16,9 @@ GPG="gpg2"
 GPG_KEY=""
 PASS_FILE="$HOME/.config/bashpass/pass.secure"
 CONF_FILE="$HOME/.config/bashpass/bashpass.conf"
-#-q --no-verbose --no-tty --batch
+
 decrypt_pass_file () {
-  $GPG  -d $PASS_FILE
+  $GPG -q --no-verbose --no-tty --batch -d $PASS_FILE
 }
 
 encrypt_pass_file () {
