@@ -17,7 +17,7 @@ sudo ln -s /full/path/to/bashpass/bashpass.sh /usr/local/bin/bashpass
 + rm [KEY] Remove the password with the given key.
 + list List all keys.
 + config [KEY] [VALUE] Set configuration options.
-.+ 'key' A gpg key fingerprint so your're not prompted on every encryption.
+ + 'key' A gpg key fingerprint so your're not prompted on every encryption.
 
 # Mac OS X
 Bashpass should run on Mac OS X.
