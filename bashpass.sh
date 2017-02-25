@@ -29,6 +29,14 @@ encrypt_pass_file () {
   fi
 }
 
+test_decrypt () {
+  decrypt_pass_file > /dev/null
+  if [ "$?" -ne 0 ]; then
+    echo "Error decrypting password file"
+    exit 1
+  fi
+}
+
 parse_decrypted () {
   awk -v key=$key '
   { if (tolower($1) == tolower(key)) {
@@ -38,6 +46,7 @@ parse_decrypted () {
 }
 
 get_pass () {
+  test_decrypt
   key=$1
   entry=(`decrypt_pass_file | parse_decrypted`)
 
@@ -50,6 +59,7 @@ get_pass () {
 }
 
 add_pass () {
+  test_decrypt
   key=$1
   if [ "$key" = "" ]; then
     echo "You must enter a key for your password"
@@ -62,6 +72,7 @@ add_pass () {
 }
 
 delete_pass () {
+  test_decrypt
   key=$1
   entry=(`decrypt_pass_file | parse_decrypted`)
   if [ "$entry" = "" ]; then
