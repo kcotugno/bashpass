@@ -179,13 +179,13 @@ usage () {
   echo "Distributed under the terms of the MIT software license. See the"
   echo "accompanying LICENSE file or http://www.opensource.org/licenses/MIT."
   echo ""
-  echo "Usage: bashpass [COMMAND] KEY"
+  echo "Usage: bashpass [OPTION] KEY"
   echo ""
-  echo "  pass KEY          retrieves the password of the given key"
-  echo "  add KEY           add a new password with the given key"
-  echo "  rm  KEY           delete the password entry of the given key"
-  echo "  list              list all keys and passwords in the database"
-  echo "  config KEY VALUE  set configuration values"
+  echo "  KEY             retrieves the password of the given key"
+  echo "  -a KEY          add a new password with the given key"
+  echo "  -d KEY         delete the password entry of the given key"
+  echo "  -l              list all keys and passwords in the database"
+  echo "  -c KEY VALUE    set configuration values"
   echo "                    options:"
   echo "                      key: This is a gpg key fingerprint which will be used"
   echo "                      for encrypting so you won't be prompted every time."
@@ -193,30 +193,83 @@ usage () {
   echo "Bashpass repository at https://github.com/kcotugno/bashpass"
 }
 
+parse_options () {
+  local __cmd=$1
+  local __arg=$2
+
+  while getopts ":a:ld:c" opt $3; do
+    case $opt in
+      a)
+        eval $__cmd='add'
+        eval $__arg="'$OPTARG'"
+        ;;
+      l)
+        eval $__cmd='list'
+        ;;
+      d)
+        eval $__cmd="'del'"
+        eval $__arg="'$OPTARG'"
+        ;;
+      c)
+        eval $__cmd="'config'"
+        ;;
+      \?)
+        eval $__cmd="'$OPTARG'"
+        return 1
+        ;;
+      \:)
+        eval $__cmd="'$OPTARG'"
+        return 2
+        ;;
+    esac
+  done
+}
+
+
 main () {
-  args=($@)
   initialize
-  while true; do
-    if [ "${args[0]}" = "pass" ]; then
-      get_pass ${args[1]}
+
+  args=($@)
+  parse_options cmd arg "${args[*]}"
+  ret=$?
+  case $ret in
+    1)
+      echo "Command '-$cmd' is not valid."
+      exit 1
+      ;;
+    2)
+      echo "Command '-$cmd' needs an arguement."
+      exit 1
+      ;;
+  esac
+
+  case $cmd in
+    add)
+      add_pass $arg
       exit $?
-    elif [ "${args[0]}" = "add" ]; then
-      add_pass ${args[1]}
-      exit $?
-    elif [ "${args[0]}" = "rm" ]; then
-      delete_pass ${args[1]}
-      exit $?
-    elif [ "${args[0]}" = "list" ]; then
+      ;;
+    list)
       list_pass
       exit $?
-    elif [ "${args[0]}" = "config" ]; then
+      ;;
+    del)
+      delete_pass $arg
+      exit $?
+      ;;
+    config)
       set_config ${args[1]} ${args[2]}
       exit $?
-    else
-      usage
-      exit 1
-    fi
-  done
+      ;;
+    "")
+      if [ "${args[0]}" = "" ]; then
+        usage
+        exit 1
+      else
+        get_pass ${args[0]}
+        exit $?
+      fi
+      ;;
+  esac
 }
 
 main $@
