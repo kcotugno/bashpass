@@ -12,11 +12,11 @@ sudo ln -s /full/path/to/bashpass/bashpass.sh /usr/local/bin/bashpass
 
 # Usage
 #### Commands
-+ pass [KEY] Retreive a password with the given key.
-+ add [KEY] Add a password with the given key.
-+ rm [KEY] Remove the password with the given key.
-+ list List all keys.
-+ config [KEY] [VALUE] Set configuration options.
++ [KEY] Retreive a password with the given key.
++ -a [KEY] Add a password with the given key.
++ -d [KEY] Remove the password with the given key.
++ -l List all keys.
++ -c [KEY] [VALUE] Set configuration options.
  + 'key' A gpg key fingerprint so your're not prompted on every encryption.
 
 # Mac OS X
