@@ -14,8 +14,10 @@
 
 GPG="gpg2"
 GPG_KEY=""
+CLIP=""
+OS=`uname`
 PASS_FILE="$HOME/.config/bashpass/pass.secure"
-CONF_FILE="$HOME/.config/bashpass/bashpass.conf"
+CONF="$HOME/.config/bashpass/bashpass.conf"
 
 decrypt_pass_file () {
   $GPG -q --no-verbose --no-tty --batch -d $PASS_FILE
@@ -54,7 +56,7 @@ get_pass () {
     echo "No password for '$key'"
     return 1
   else
-    echo `echo "${entry[2]}"`
+    echo "${entry[2]}" | $CLIP
   fi
 }
 
@@ -138,30 +140,35 @@ check_secure_file () {
 }
 
 load_conf () {
-  if [ -e "$CONF_FILE" ]; then
-    source $CONF_FILE
+  if [ -e "$CONF" ]; then
+    source $CONF
   else
     (echo "#"
-    echo "# $CONF_FILE"
-    echo "#") > $CONF_FILE
+    echo "# $CONF"
+    echo "#") > $CONF
   fi
 }
 
 set_config () {
   key=$1
   value=$2
-  if [[ "$key" = "" || "$value" = "" ]]; then
+  if [[ "$value" = "" ]]; then
     echo "An option and value must be specified"
-    echo "Configurable options: {key}"
+    echo "Configurable options: {key} {clip}"
     return 1
   else
     case $1 in
       key)
-          GPG_KEY=$value}
+          GPG_KEY=$value
           key='GPG_KEY'
         ;;
+      clip)
+        CLIPBOARD=$value
+        key='CLIP'
+        ;;
       *)
-        echo "Configurable options: {key}"
+        echo "Invalid option"
+        echo "Avalable options: {key} {clip}"
         return 0
     esac
 
@@ -170,18 +177,27 @@ set_config () {
 }
 
 save_config_value () {
-  IFS=":"
-  current=(`cat $CONF_FILE | grep "$key="`)
+  current=(`get_config_value $1`)
   if [ "$current" != "" ]; then
-    delete_config_value $current
+    delete_config_value ${current[0]}
   fi
-  unset IFS
 
-  echo "$1=\"$2\"" >> $CONF_FILE
+  echo "$1=\"$2\"" >> $CONF
+}
+
+get_config_value () {
+  cat $CONF | awk -v key=$1 '
+  { split($0, conf, "=");
+    if (conf[1] == toupper(key)) {
+      print NR, $0;
+    }
+  }'
 }
 
 delete_config_value () {
-  cat $CONF_FILE | sed "${1}d" > $CONF_FILE
+  local tmp=mktemp
+  sed "${1}d" $CONF > $tmp
+  cat $tmp > $CONF
 }
 
 usage () {
@@ -199,7 +215,9 @@ usage () {
   echo "  -c KEY VALUE    set configuration values"
   echo "                    options:"
   echo "                      key: This is a gpg key fingerprint which will be used"
-  echo "                      for encrypting so you won't be prompted every time."
+  echo "                        for encrypting so you won't be prompted every time."
+  echo "                      clip: The clipboard command to which the password will"
+  echo "                        be piped into"
   echo ""
   echo "Bashpass repository at https://github.com/kcotugno/bashpass"
 }
@@ -236,51 +254,52 @@ parse_options () {
   done
 }
 
+# Set the command to pipe the password into.
+if [ "Darwin" ]; then
+  CLIP="pbcopy"
+else
+  CLIP="cat"
+fi
 
-main () {
-  initialize
+initialize
+args=($@)
+parse_options cmd arg "${args[*]}"
+ret=$?
+case $ret in
+  1)
+    echo "Command '-$cmd' is not valid."
+    exit 1
+    ;;
+  2)
+    echo "Command '-$cmd' needs an arguement."
+    exit 1
+    ;;
+esac
 
-  args=($@)
-  parse_options cmd arg "${args[*]}"
-  ret=$?
-  case $ret in
-    1)
-      echo "Command '-$cmd' is not valid."
+case $cmd in
+  add)
+    add_pass $arg
+    exit $?
+    ;;
+  list)
+    list_pass
+    exit $?
+    ;;
+  del)
+    delete_pass $arg
+    exit $?
+    ;;
+  config)
+    set_config ${args[1]} ${args[2]}
+    exit $?
+    ;;
+  "")
+    if [ "${args[0]}" = "" ]; then
+      usage
       exit 1
-      ;;
-    2)
-      echo "Command '-$cmd' needs an arguement."
-      exit 1
-      ;;
-  esac
-
-  case $cmd in
-    add)
-      add_pass $arg
+    else
+      get_pass ${args[0]}
       exit $?
-      ;;
-    list)
-      list_pass
-      exit $?
-      ;;
-    del)
-      delete_pass $arg
-      exit $?
-      ;;
-    config)
-      set_config ${args[1]} ${args[2]}
-      exit $?
-      ;;
-    "")
-      if [ "${args[0]}" = "" ]; then
-        usage
-        exit 1
-      else
-        get_pass ${args[0]}
-        exit $?
-      fi
-      ;;
-  esac
-}
-
-main $@
+    fi
+    ;;
+esac
