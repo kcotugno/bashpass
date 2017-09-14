@@ -12,22 +12,22 @@
 # Date: 2/12/2017
 #
 
-GPG="gpg2"
-GPG_KEY=""
-CLIP=""
-OS=`uname`
-PASS_FILE="$HOME/.config/bashpass/pass.secure"
-CONF="$HOME/.config/bashpass/bashpass.conf"
+gpg="gpg2"
+gpg_key=""
+clip=""
+os=`uname`
+pass_file="$HOME/.config/bashpass/pass.secure"
+conf="$HOME/.config/bashpass/bashpass.conf"
 
 decrypt_pass_file () {
-  $GPG -q --no-verbose --no-tty --batch -d $PASS_FILE
+  $gpg -q --no-verbose --no-tty --batch -d $pass_file
 }
 
 encrypt_pass_file () {
-  if [ "$GPG_KEY" = "" ]; then
-    $GPG --yes -o $PASS_FILE -e
+  if [ "$gpg_key" = "" ]; then
+    $gpg --yes -o $pass_file -e
   else
-    $GPG -r $GPG_KEY --yes -o $PASS_FILE -e
+    $gpg -r $gpg_key --yes -o $pass_file -e
   fi
 }
 
@@ -56,7 +56,7 @@ get_pass () {
     echo "No password for '$key'"
     return 1
   else
-    echo "${entry[2]}" | $CLIP
+    echo "${entry[2]}" | $clip
   fi
 }
 
@@ -122,30 +122,30 @@ initialize () {
 
   if [ "$secure_exists" -eq 1 ]; then
     echo -n "" | encrypt_pass_file
-    echo "Bashpass initialized. Your secure file is here: '$PASS_FILE'"
+    echo "Bashpass initialized. Your secure file is here: '$pass_file'"
   fi
 }
 
 init_dir () {
-  if [ ! -e `dirname $PASS_FILE` ]; then
-    mkdir -p `dirname $PASS_FILE`
+  if [ ! -e `dirname $pass_file` ]; then
+    mkdir -p `dirname $pass_file`
   fi
 }
 
 check_secure_file () {
-  if [ -e "$PASS_FILE" ]; then
+  if [ -e "$pass_file" ]; then
     return 0
   fi
   return 1
 }
 
 load_conf () {
-  if [ -e "$CONF" ]; then
-    source $CONF
+  if [ -e "$conf" ]; then
+    source $conf
   else
     (echo "#"
-    echo "# $CONF"
-    echo "#") > $CONF
+    echo "# $conf"
+    echo "#") > $conf
   fi
 }
 
@@ -159,12 +159,12 @@ set_config () {
   else
     case $1 in
       key)
-          GPG_KEY=$value
-          key='GPG_KEY'
+          gpg_key=$value
+          key='gpg_key'
         ;;
       clip)
-        CLIPBOARD=$value
-        key='CLIP'
+        clipboard=$value
+        key='clip'
         ;;
       *)
         echo "Invalid option"
@@ -182,11 +182,11 @@ save_config_value () {
     delete_config_value ${current[0]}
   fi
 
-  echo "$1=\"$2\"" >> $CONF
+  echo "$1=\"$2\"" >> $conf
 }
 
 get_config_value () {
-  cat $CONF | awk -v key=$1 '
+  cat $conf | awk -v key=$1 '
   { split($0, conf, "=");
     if (conf[1] == toupper(key)) {
       print NR, $0;
@@ -196,8 +196,8 @@ get_config_value () {
 
 delete_config_value () {
   local tmp=mktemp
-  sed "${1}d" $CONF > $tmp
-  cat $tmp > $CONF
+  sed "${1}d" $conf > $tmp
+  cat $tmp > $conf
 }
 
 usage () {
@@ -256,9 +256,9 @@ parse_options () {
 
 # Set the command to pipe the password into.
 if [ "Darwin" ]; then
-  CLIP="pbcopy"
+  clip="pbcopy"
 else
-  CLIP="cat"
+  clip="cat"
 fi
 
 initialize
