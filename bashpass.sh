@@ -200,6 +200,10 @@ save_config_value () {
 	echo $tmp | $jq ".$1 = \"$2\"" > $conf
 }
 
+sanitize_json () {
+	$2=`echo "$1" | sed -E 's/"|\\/\/g'`
+}
+
 usage () {
 	echo "Bashpass"
 	echo "Copyright (c) 2017 Kevin Cotugno"
