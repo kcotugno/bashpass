@@ -201,7 +201,7 @@ save_config_value () {
 }
 
 sanitize_json () {
-	$2=`echo "$1" | sed -E 's/"|\\/\/g'`
+	$2=`echo "$1" | sed -E 's/"|\\/\\&/g'`
 }
 
 usage () {
