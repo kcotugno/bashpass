@@ -17,7 +17,7 @@ os=`uname`
 pass_file="$HOME/.config/bashpass/pass.secure"
 conf="$HOME/.config/bashpass/bashpass.conf"
 
-which gpg2
+which gpg2 &> /dev/null
 if (( ! $? )); then
 	gpg="gpg2"
 else
