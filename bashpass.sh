@@ -12,11 +12,17 @@
 # Date: 2/12/2017
 #
 
-gpg="gpg2"
 clip=""
 os=`uname`
 pass_file="$HOME/.config/bashpass/pass.secure"
 conf="$HOME/.config/bashpass/bashpass.conf"
+
+which gpg2
+if (( ! $? )); then
+  gpg="gpg2"
+else
+  gpg="gpg"
+fi
 
 decrypt_pass_file () {
   $gpg -q --no-verbose --no-tty --batch -d $pass_file
