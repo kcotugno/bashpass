@@ -125,8 +125,8 @@ initialize () {
 	check_secure_file
 	secure_exists=$?
 
-	if [ "$secure_exists" -eq 1 ]; then
-		echo -n "" | encrypt_pass_file
+	if (( $secure_exists )); then
+		echo "{}" | encrypt_pass_file
 		echo "Bashpass initialized. Your secure file is here: '$pass_file'"
 	fi
 }
