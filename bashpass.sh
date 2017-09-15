@@ -136,12 +136,17 @@ new_pass () {
 initialize () {
 	init_dir
 	load_conf
+	init_secure
+}
 
-	if (( `check_file "$pass_file"` )); then
+init_secure () {
+	check_file "$pass_file"
+	if (( ! $? )); then
 		echo "{}" | encrypt_pass_file
 		echo "Bashpass initialized. Your secure file is here: '$pass_file'"
 	fi
 }
+
 
 init_dir () {
 	if [ ! -e `dirname $pass_file` ]; then
@@ -151,9 +156,9 @@ init_dir () {
 
 check_file () {
 	if [[ -e "$1" ]]; then
-		return 0
+		return 1
 	fi
-	return 1
+	return 0
 }
 
 load_conf () {
