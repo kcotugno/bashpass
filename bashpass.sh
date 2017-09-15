@@ -14,7 +14,7 @@
 
 clip=""
 os=`uname`
-pass_file="$HOME/.config/bashpass/pass.secure"
+pass_file="$HOME/.config/bashpass/bashpass.secure"
 conf="$HOME/.config/bashpass/bashpass.conf"
 
 which gpg2 &> /dev/null
@@ -55,7 +55,6 @@ test_decrypt () {
 
 has_key () {
 	local __key=$1
-	test_decrypt
 
 	local __has_key=`decrypt_pass_file | $jq ".passwd | has(\"$key\")"`
 
@@ -68,8 +67,6 @@ has_key () {
 
 get_pass () {
 	local __key=$1
-
-	test_decrypt
 
 	if (( `has_key $__key` )); then
 		local __pass=`decrypt_pass_file | $jq "'.passwd.$key.password'"`
@@ -84,8 +81,6 @@ get_pass () {
 add_pass () {
 	local __key=$1
 
-	test_decrypt
-
 	if (( `has_key $__key` )); then
 		echo "Key '$__key' already exists"
 		return 1
@@ -99,8 +94,6 @@ add_pass () {
 
 delete_pass () {
 	local __key=$1
-
-	test_decrypt
 
 	if (( `has_key $__key` )); then
 		echo "Nothing to do"
@@ -288,6 +281,7 @@ else
 fi
 
 initialize
+test_decrypt
 args=($@)
 parse_options cmd arg "${args[*]}"
 ret=$?
