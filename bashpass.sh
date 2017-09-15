@@ -55,11 +55,11 @@ test_decrypt () {
 }
 
 has_key () {
-	local __key=$1
+	local key=$1
 
-	local __has_key=`decrypt_pass_file | $jq ".passwd | has(\"$key\")"`
+	local has_key=`decrypt_pass_file | $jq ".passwd | has(\"$key\")"`
 
-	if [[ "$__has_key" == "true" ]]; then
+	if [[ "$has_key" == "true" ]]; then
 		return 1
 	else
 		return 0
@@ -67,40 +67,40 @@ has_key () {
 }
 
 get_pass () {
-	local __key=$1
+	local key=$1
 
-	if (( `has_key $__key` )); then
-		local __pass=`decrypt_pass_file | $jq "'.passwd.$key.password'"`
-		echo "$__pass" | $clip
+	if (( `has_key $key` )); then
+		local pass=`decrypt_pass_file | $jq "'.passwd.$key.password'"`
+		echo "$pass" | $clip
 	else
-		echo "Key '$__key' does not exist"
+		echo "Key '$key' does not exist"
 		return 1
 	fi
 
 }
 
 add_pass () {
-	local __key=$1
+	local key=$1
 
-	if (( `has_key $__key` )); then
-		echo "Key '$__key' already exists"
+	if (( `has_key $key` )); then
+		echo "Key '$key' already exists"
 		return 1
 	else
 		new_pass
-		decrypt_pass_file | $jq ".passwd.$__key = {\"password\": \
+		decrypt_pass_file | $jq ".passwd.$key = {\"password\": \
 			\"$password\"}" | encrypt_pass_file
 
 	fi
 }
 
 delete_pass () {
-	local __key=$1
+	local key=$1
 
-	if (( `has_key $__key` )); then
+	if (( `has_key $key` )); then
 		echo "Nothing to do"
 		return
 	else
-		decrypt_pass_file | $jq "del(.passwd.$__key)" | \
+		decrypt_pass_file | $jq "del(.passwd.$key)" | \
 			encrypt_pass_file
 	fi
 }
