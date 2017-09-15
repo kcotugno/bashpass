@@ -13,7 +13,6 @@
 #
 
 gpg="gpg2"
-gpg_key=""
 clip=""
 os=`uname`
 pass_file="$HOME/.config/bashpass/pass.secure"
@@ -24,10 +23,10 @@ decrypt_pass_file () {
 }
 
 encrypt_pass_file () {
-  if [ "$gpg_key" = "" ]; then
+  if [ "$GPG_KEY" = "" ]; then
     $gpg --yes -o $pass_file -e
   else
-    $gpg -r $gpg_key --yes -o $pass_file -e
+    $gpg -r $GPG_KEY --yes -o $pass_file -e
   fi
 }
 
@@ -159,8 +158,8 @@ set_config () {
   else
     case $1 in
       key)
-          gpg_key=$value
-          key='gpg_key'
+          GPG_KEY=$value
+          key='GPG_KEY'
         ;;
       clip)
         clipboard=$value
