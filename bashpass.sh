@@ -24,6 +24,15 @@ else
 	gpg="gpg"
 fi
 
+which jq &> /dev/null
+if (( ! $? )); then
+	jq="jq --compact-output"
+else
+	echo "Missing required dependency 'jq'."
+	echo "Please see https://stedolan.github.io/jq/"
+	exit 1
+fi
+
 decrypt_pass_file () {
 	$gpg -q --no-verbose --no-tty --batch -d $pass_file
 }
@@ -44,50 +53,61 @@ test_decrypt () {
 	fi
 }
 
-parse_decrypted () {
-	awk -v key=$key '
-	{ if (tolower($1) == tolower(key)) {
-		print NR, $0;
-	} }
-	'
+has_key () {
+	local __key=$1
+	test_decrypt
+
+	local __has_key=`decrypt_pass_file | $jq ".passwd | has(\"$key\")"`
+
+	if [[ "$__has_key" == "true" ]]; then
+		return 1
+	else
+		return 0
+	fi
 }
 
 get_pass () {
-	test_decrypt
-	key=$1
-	entry=(`decrypt_pass_file | parse_decrypted`)
+	local __key=$1
 
-	if [ "$entry" = "" ]; then
-		echo "No password for '$key'"
-		return 1
+	test_decrypt
+
+	if (( `has_key $__key` )); then
+		local __pass=`decrypt_pass_file | $jq "'.passwd.$key.password'"`
+		echo "$__pass" | $clip
 	else
-		echo "${entry[2]}" | $clip
+		echo "Key '$__key' does not exist"
+		return 1
 	fi
+
 }
 
 add_pass () {
+	local __key=$1
+
 	test_decrypt
-	key=$1
-	if [ "$key" = "" ]; then
-		echo "You must enter a key for your password"
+
+	if (( `has_key $__key` )); then
+		echo "Key '$__key' already exists"
 		return 1
+	else
+		new_pass
+		decrypt_pass_file | $jq ".passwd.$__key = {\"password\": \
+			\"$password\"}" | encrypt_pass_file
+
 	fi
-	entry=(`decrypt_pass_file | parse_decrypted`)
-	check_pass $key
-	new_pass
-	(decrypt_pass_file && echo "$key $password") | encrypt_pass_file
 }
 
 delete_pass () {
+	local __key=$1
+
 	test_decrypt
-	key=$1
-	entry=(`decrypt_pass_file | parse_decrypted`)
-	if [ "$entry" = "" ]; then
-		echo "Nothing to delete"
-		exit 0
+
+	if (( `has_key $__key` )); then
+		echo "Nothing to do"
+		return
 	else
-		decrypt_pass_file | sed "${entry[0]}d" | encrypt_pass_file
-		echo "Password for $key deleted"
+		decrypt_pass_file | $jq "del(.passwd.$__key)" | \
+			encrypt_pass_file
 	fi
 }
 
