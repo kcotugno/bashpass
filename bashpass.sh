@@ -27,6 +27,7 @@ fi
 which jq &> /dev/null
 if (( ! $? )); then
 	jq="jq --compact-output"
+	jq_raw="--raw-output"
 else
 	echo "Missing required dependency 'jq'."
 	echo "Please see https://stedolan.github.io/jq/"
@@ -156,64 +157,42 @@ check_file () {
 }
 
 load_conf () {
-	if [ -e "$conf" ]; then
-		source $conf
+	check_file "$conf"
+	if (( $? )); then
+		BASHPASS_KEY=`cat $conf | jq '.BASHPASS_KEY'`
+		BASHPASS_CLIP=`cat $conf | jq '.BASHPASS_CLIP'`
 	else
-		(echo "#"
-		echo "# $conf"
-		echo "#") > $conf
+		echo "{}" > $conf
 	fi
 }
 
 set_config () {
-	key=$1
 	value=$2
-	if [[ "$value" = "" ]]; then
-		echo "An option and value must be specified"
-		echo "Configurable options: {key} {clip}"
-		return 1
-	else
-		case $1 in
-			key)
-					GPG_KEY=$value
-					key='GPG_KEY'
-				;;
-			clip)
-				clipboard=$value
-				key='clip'
-				;;
-			*)
-				echo "Invalid option"
-				echo "Avalable options: {key} {clip}"
-				return 0
-		esac
 
+	case $1 in
+		key)
+			key='BASHPASS_KEY'
+			;;
+		clip)
+			key='BASHPASS_CLIP'
+			;;
+		*)
+			echo "Invalid option"
+			echo "Avalable options: {key} {clip}"
+			return 1
+	esac
+
+
+	if [[ -z "$value" ]]; then
+		cat "$conf" | $jq $jq_raw ".$key"
+	else
 		save_config_value $key $value
 	fi
 }
 
 save_config_value () {
-	current=(`get_config_value $1`)
-	if [ "$current" != "" ]; then
-		delete_config_value ${current[0]}
-	fi
-
-	echo "$1=\"$2\"" >> $conf
-}
-
-get_config_value () {
-	cat $conf | awk -v key=$1 '
-	{ split($0, conf, "=");
-		if (conf[1] == toupper(key)) {
-			print NR, $0;
-		}
-	}'
-}
-
-delete_config_value () {
-	local tmp=mktemp
-	sed "${1}d" $conf > $tmp
-	cat $tmp > $conf
+	local tmp=`cat $conf`
+	echo $tmp | $jq ".$1 = \"$2\"" > $conf
 }
 
 usage () {
@@ -308,7 +287,7 @@ case $cmd in
 		exit $?
 		;;
 	config)
-		set_config ${args[1]} ${args[2]}
+		set_config "$2" "$3"
 		exit $?
 		;;
 	"")
