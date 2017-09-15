@@ -147,7 +147,6 @@ init_secure () {
 	fi
 }
 
-
 init_dir () {
 	if [ ! -e `dirname $pass_file` ]; then
 		mkdir -p `dirname $pass_file`
