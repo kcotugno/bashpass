@@ -114,14 +114,14 @@ list_pass () {
 
 new_pass () {
 	ok=1
-	while [ "$ok" -eq 1 ]; do
+	while (( $ok )); do
 		echo -n "Please enter a password: "
 		read -ser password && echo ""
-		split=($password)
-		if [ "$password" = "" ]; then
-			echo "" && echo "The password cannot be blank"
-		elif [ "${split[0]}" != "$password" ]; then
-			echo "" && echo "The password may not contain spaces"
+		echo -n "Please confirm the password: "
+		read -ser confirm && echo ""
+
+		if [[ "$password" != "$confirm" ]]; then
+			echo "The inputs do not match" && echo ""
 		else
 			ok=0
 		fi
