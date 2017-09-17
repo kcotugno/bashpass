@@ -14,8 +14,8 @@
 
 clip=""
 os=`uname`
-pass_file="$HOME/.config/bashpass/bashpass.secure"
-conf="$HOME/.config/bashpass/bashpass.conf"
+pass_file="$HOME/.bashpass.secure"
+conf="$HOME/.bashpass.conf"
 
 which gpg2 &> /dev/null
 if (( ! $? )); then
