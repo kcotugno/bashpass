@@ -69,8 +69,9 @@ has_key () {
 get_pass () {
 	local key=$1
 
-	if (( `has_key $key` )); then
-		local pass=`decrypt_pass_file | $jq "'.passwd.$key.password'"`
+	has_key "$key"
+	if (( $? )); then
+		local pass=`decrypt_pass_file | $jq $jq_raw ".passwd.$key.password"`
 		echo "$pass" | $clip
 	else
 		echo "Key '$key' does not exist"
@@ -82,7 +83,8 @@ get_pass () {
 add_pass () {
 	local key=$1
 
-	if (( `has_key $key` )); then
+	has_key "$key"
+	if (( $? )); then
 		echo "Key '$key' already exists"
 		return 1
 	else
@@ -96,7 +98,8 @@ add_pass () {
 delete_pass () {
 	local key=$1
 
-	if (( `has_key $key` )); then
+	has_key "$key"
+	if (( $? )); then
 		echo "Nothing to do"
 		return
 	else
