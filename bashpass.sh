@@ -112,14 +112,6 @@ list_pass () {
 	decrypt_pass_file
 }
 
-check_pass () {
-	key=$1
-	if [ "$entry" != "" ]; then
-		echo "Password for '$key' already exists"
-		exit 1
-	fi
-}
-
 new_pass () {
 	ok=1
 	while [ "$ok" -eq 1 ]; do
