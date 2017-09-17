@@ -99,7 +99,7 @@ delete_pass () {
 	local key=$1
 
 	has_key "$key"
-	if (( $? )); then
+	if (( ! $? )); then
 		echo "Nothing to do"
 		return
 	else
