@@ -39,10 +39,10 @@ decrypt_pass_file () {
 }
 
 encrypt_pass_file () {
-	if [ "$GPG_KEY" = "" ]; then
+	if [[ -z "$BASHPASS_KEY" ]]; then
 		$gpg --yes -o $pass_file -e
 	else
-		$gpg -r $GPG_KEY --yes -o $pass_file -e
+		$gpg -r "$BASHPASS_KEY" --yes -o $pass_file -e
 	fi
 }
 
@@ -163,8 +163,8 @@ check_file () {
 load_conf () {
 	check_file "$conf"
 	if (( $? )); then
-		BASHPASS_KEY=`cat $conf | jq '.BASHPASS_KEY'`
-		BASHPASS_CLIP=`cat $conf | jq '.BASHPASS_CLIP'`
+		BASHPASS_KEY=`cat $conf | $jq $jq_raw '.BASHPASS_KEY'`
+		BASHPASS_CLIP=`cat $conf | $jq $jq_raw '.BASHPASS_CLIP'`
 	else
 		echo "{}" > $conf
 	fi
