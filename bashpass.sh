@@ -262,7 +262,7 @@ parse_options () {
 }
 
 # Set the command to pipe the password into.
-if [ "Darwin" ]; then
+if [[ os == "Darwin" ]]; then
 	clip="pbcopy"
 else
 	clip="cat"
