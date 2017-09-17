@@ -89,8 +89,9 @@ add_pass () {
 		return 1
 	else
 		new_pass
+		sanitize_json "$password"
 		decrypt_pass_file | $jq ".passwd.$key = {\"password\": \
-			\"$password\"}" | encrypt_pass_file
+			\"$sanitized\"}" | encrypt_pass_file
 
 	fi
 }
@@ -195,7 +196,7 @@ save_config_value () {
 }
 
 sanitize_json () {
-	$2=`echo "$1" | sed -E 's/"|\\/\\&/g'`
+	sanitized=$(echo "$1" | sed -E 's/"|\\/\\&/g')
 }
 
 usage () {
