@@ -171,7 +171,7 @@ load_conf () {
 }
 
 set_config () {
-	value=$2
+	value="$2"
 
 	case $1 in
 		key)
@@ -190,7 +190,7 @@ set_config () {
 	if [[ -z "$value" ]]; then
 		cat "$conf" | $jq $jq_raw ".$key"
 	else
-		save_config_value $key $value
+		save_config_value "$key" "$value"
 	fi
 }
 
